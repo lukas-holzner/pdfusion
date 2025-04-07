@@ -17,7 +17,7 @@ import { calculateHash } from './utils/pdfHash';
 import FileNameTemplateEditor from './components/FileNameTemplateEditor';
 import EmailTemplateEditors from './components/EmailTemplateEditors'; // Import the new component
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = `pdf.worker.min.mjs`;
 
 function App() {
   const [pdfFile, setPdfFile] = useState(null); // The File object for display name etc.
@@ -620,7 +620,7 @@ function App() {
 
       <div className="w-1/3 flex-shrink-0 p-4 space-y-4 overflow-y-auto border-r border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
         <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 pb-2 border-b dark:border-gray-700 flex items-center gap-3">
-          <img src="/logo.png" alt="PDFusion Logo" className="w-8 h-8" />
+          <img src="logo.png" alt="PDFusion Logo" className="w-8 h-8" />
           PDFusion
         </h2>
 
