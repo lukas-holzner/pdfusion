@@ -66,4 +66,3 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-/* Remove the @media query for dark mode as we're using class-based dark mode */

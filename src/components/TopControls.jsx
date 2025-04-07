@@ -3,7 +3,8 @@ import FileUpload from './FileUpload';
 
 function TopControls({ 
   onPdfSelect, 
-  onDataSelect, 
+  onDataSelect,
+  onDataPaste,  // Add this prop
   isLoading, 
   isExporting,
   onAddLabelClick,
@@ -32,11 +33,20 @@ function TopControls({
           onFileSelect={onPdfSelect}
         />
 
-        <FileUpload
-          label="Upload Data (CSV/JSON)"
-          accept=".csv,.json"
-          onFileSelect={onDataSelect}
-        />
+        <div className="flex space-x-2">
+          <FileUpload
+            label="Upload Data (CSV/JSON)"
+            accept=".csv,.json"
+            onFileSelect={onDataSelect}
+          />
+          <button
+            onClick={onDataPaste}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            title="Paste table data from clipboard"
+          >
+            Paste Data
+          </button>
+        </div>
       </div>
 
       <div className="flex space-x-4 mt-4">

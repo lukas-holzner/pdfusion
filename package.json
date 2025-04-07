@@ -1,8 +1,10 @@
 {
-  "name": "my-pdf-templater",
+  "name": "pdfusion",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "license": "MIT",
   "type": "module",
+  "homepage": "https://lukas-holzner.github.io/pdfusion",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

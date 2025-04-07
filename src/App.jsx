@@ -407,6 +407,36 @@ function App() {
     }
   }, []);
 
+  const handleDataPaste = useCallback(async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      // Split by tabs and newlines to create table structure
+      const rows = text.trim().split('\n').map(line => line.split('\t'));
+      
+      if (rows.length < 2) {
+        throw new Error('Not enough data. Please copy a table with headers and data.');
+      }
+
+      // First row as headers
+      const newHeaders = rows[0];
+      
+      // Convert remaining rows to objects
+      const newData = rows.slice(1).map(row => {
+        const obj = {};
+        row.forEach((cell, idx) => {
+          obj[newHeaders[idx]] = cell;
+        });
+        return obj;
+      });
+
+      setHeaders(newHeaders);
+      setData(newData);
+    } catch (error) {
+      console.error('Failed to paste data:', error);
+      alert('Failed to paste table data. Make sure you copied a valid table.');
+    }
+  }, []);
+
   // Modified export handler to show dialog instead of exporting directly
   const handleExportClick = useCallback(() => {
     if (!pdfFileBuffer || !pdfHash || !data.length) {
@@ -589,11 +619,15 @@ function App() {
       <ThemeToggle isDark={isDarkMode} onToggle={toggleDarkMode} />
 
       <div className="w-1/3 flex-shrink-0 p-4 space-y-4 overflow-y-auto border-r border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 pb-2 border-b dark:border-gray-700">Controls</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 pb-2 border-b dark:border-gray-700 flex items-center gap-3">
+          <img src="/logo.png" alt="PDFusion Logo" className="w-8 h-8" />
+          PDFusion
+        </h2>
 
         <TopControls
           onPdfSelect={handlePdfSelect}
           onDataSelect={handleDataFileSelect}
+          onDataPaste={handleDataPaste}
           isLoading={isLoadingState}
           isExporting={isExporting}
           onAddLabelClick={handleAddLabelClick}
