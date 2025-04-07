@@ -1,12 +1,39 @@
-import React from 'react';
+import React, { useRef } from 'react';
 
 function FileNameTemplateEditor({ template, onChange, availableVariables = [] }) {
+  const inputRef = useRef(null);
+
+  const handleVariableClick = (variableName) => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const textToInsert = `{{${variableName}}}`;
+    const newValue = template.substring(0, start) + textToInsert + template.substring(end);
+
+    onChange(newValue);
+
+    requestAnimationFrame(() => {
+      input.focus();
+      input.selectionStart = input.selectionEnd = start + textToInsert.length;
+    });
+  };
+
+  const handleKeyDown = (event, variableName) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      handleVariableClick(variableName);
+    }
+  };
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
         Output File Name Template
       </label>
       <input
+        ref={inputRef}
         type="text"
         value={template}
         onChange={(e) => onChange(e.target.value)}
@@ -14,11 +41,20 @@ function FileNameTemplateEditor({ template, onChange, availableVariables = [] })
         placeholder="generated_{{index}}_{{filename}}"
       />
       <div className="text-xs text-gray-500 dark:text-gray-400">
-        <p>Available variables:</p>
+        <p>Available variables (click to insert):</p>
         <ul className="list-disc list-inside">
           {availableVariables.map(v => (
             <li key={v.name} className="ml-2">
-              <code className="bg-gray-100 dark:bg-gray-700 px-1 rounded">{`{{${v.name}}}`}</code>
+              <code
+                onClick={() => handleVariableClick(v.name)}
+                onKeyDown={(e) => handleKeyDown(e, v.name)}
+                className="bg-gray-100 dark:bg-gray-700 px-1 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                title={`Insert {{${v.name}}}`}
+                role="button"
+                tabIndex="0"
+              >
+                {`{{${v.name}}}`}
+              </code>
               {v.description && ` - ${v.description}`}
             </li>
           ))}

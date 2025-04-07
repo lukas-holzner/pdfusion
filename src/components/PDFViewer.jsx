@@ -272,12 +272,6 @@ function PdfViewer({
         availableVariables={templateVariables}
       />
 
-      {/* Placeholder Text */}
-      {!pdfFile && !loading && (
-        <div className="text-center text-gray-500 dark:text-gray-400 mt-10">
-            Upload a PDF to view
-        </div>
-      )}
       {/* Placeholder if PDF loading failed */}
       {pdfFile && !pdfDocProxy && !loading && (
         <div className="text-center text-red-500 mt-10">
