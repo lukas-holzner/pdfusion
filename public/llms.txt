@@ -1,0 +1,23 @@
+# PDFusion
+
+> PDFusion is a web application designed to merge PDF templates with user-provided data (CSV or JSON). It features a visual editor for placing data fields onto the PDF template and supports batch generation of customized PDF documents.
+
+PDFusion allows users to:
+- Upload a base PDF template.
+- Import data from CSV or JSON files.
+- Visually drag and drop data fields (column headers) onto the PDF preview.
+- Customize the appearance of placed labels (font, size, style).
+- Export a single PDF based on the current data record or batch export PDFs for all data records.
+- Configure customizable file naming patterns using data variables.
+- Integrate with local email clients using customizable email templates (To, Subject, Body) with data variables.
+
+The application is built using React, Vite, and Tailwind CSS, utilizing libraries like pdf-lib for PDF manipulation and pdf.js for rendering. Layouts and settings are persisted using browser localStorage.
+
+## Documentation & Source
+
+- [ README ](https://github.com/LukasHolzner/pdfusion/blob/main/README.md) : The main documentation file containing setup, usage, and technical details.
+- [ Source Code Repository ](https://github.com/LukasHolzner/pdfusion) : The full source code for the project on GitHub.
+
+## Live Application
+
+- [ PDFusion Application ](https://lukasholzner.github.io/pdfusion/) : The deployed web application on GitHub Pages.
