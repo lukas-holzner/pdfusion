@@ -1,0 +1,11 @@
+First Name,Last Name,Email,Job Title,Department,Start Date,Salary,Employee ID,Location,Manager
+John,Smith,john.smith@company.com,Senior Developer,Engineering,2020-03-15,85000,EMP001,New York,Sarah Wilson
+Maria,Garcia,maria.g@company.com,Product Manager,Product,2019-11-01,92000,EMP002,San Francisco,James Lee
+David,Johnson,david.j@company.com,Marketing Specialist,Marketing,2021-01-20,65000,EMP003,Chicago,Michael Brown
+Sarah,Wilson,sarah.w@company.com,Engineering Director,Engineering,2018-06-10,120000,EMP004,New York,Patricia Moore
+James,Lee,james.lee@company.com,VP of Product,Product,2017-09-01,145000,EMP005,San Francisco,Patricia Moore
+Michael,Brown,m.brown@company.com,Marketing Director,Marketing,2018-12-15,110000,EMP006,Chicago,Patricia Moore
+Emily,Taylor,emily.t@company.com,Software Engineer,Engineering,2022-02-28,75000,EMP007,New York,Sarah Wilson
+Robert,Martinez,rob.m@company.com,UX Designer,Product,2021-08-15,78000,EMP008,San Francisco,James Lee
+Lisa,Anderson,lisa.a@company.com,Content Writer,Marketing,2022-04-01,62000,EMP009,Chicago,Michael Brown
+Patricia,Moore,p.moore@company.com,CEO,Executive,2016-01-01,250000,EMP010,San Francisco,
