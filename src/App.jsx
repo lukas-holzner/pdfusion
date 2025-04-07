@@ -34,6 +34,7 @@ function App() {
   const [headers, setHeaders] = useState([]); // Array of column headers
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [fileNameTemplate, setFileNameTemplate] = useState('generated_{{index}}_{{filename}}');
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, visible: false }); // State for menu position
 
   // Update theme state initialization to check localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -187,7 +188,7 @@ function App() {
       // Reset all relevant state for the new file
       setPdfFile(file);
       setLabels([]);
-      setSelectedLabelId(null);
+      setSelectedLabelId(null); // #5: Deselection when loading new PDF
       setCurrentPage(1);
       setRenderedPageInfo(null);
       setPdfFileBuffer(null);
@@ -259,24 +260,19 @@ function App() {
   // --- Select a label when clicked ---
   const handleLabelSelect = useCallback((id) => {
     console.log("Selecting Label ID:", id);
-    setSelectedLabelId(id);
+    // Toggle selection - if clicking the same label, deselect it
+    setSelectedLabelId(prev => prev === id ? null : id);
   }, []);
 
   // --- Deselect label if clicking on the viewer background ---
-  const handleViewerClick = useCallback((e) => {
-      // Check if the click target is outside any label component
-       if (!e.target.closest('.label-component')) {
-            // More specific check could verify target is canvas or specific background divs if needed
-            console.log("Background clicked, deselecting label.");
-            setSelectedLabelId(null);
-       } else {
-            // Check if the click was inside the currently selected label
-            if (selectedLabelId && e.target.closest(`.label-component[data-label-id="${selectedLabelId}"]`)) {
-                console.log("Click was inside the selected label, deselecting.");
-                setSelectedLabelId(null);
-            }
-       }
-  }, [selectedLabelId]); // Dependency on selectedLabelId
+  const handleViewerClick = useCallback((event) => {
+    // Do not deselect if click is inside the font settings menu
+    if (event.target.closest('.font-settings-menu')) return;
+    
+    if (event.target === viewerAreaRef.current || event.target.tagName === 'CANVAS') {  // #1: Deselection when clicking viewer background or canvas
+      setSelectedLabelId(null);
+    }
+  }, [viewerAreaRef]); // Add dependencies if needed, though viewerAreaRef should be stable
 
   // --- Update label properties (position, style) ---
   const handleLabelUpdate = useCallback((id, updates) => {
@@ -339,12 +335,9 @@ function App() {
 
   // --- Delete the currently selected label ---
   const handleDeleteLabel = useCallback((idToDelete) => {
-      // Use functional update to remove the label
-      setLabels(prevLabels => prevLabels.filter(label => label.id !== idToDelete));
-      setSelectedLabelId(null); // Deselect after deleting
-      // Save to localStorage will happen via the useEffect watching 'labels'
-      console.log(`Deleted label ${idToDelete}`);
-  }, []); // No dependencies needed
+    setLabels(prev => prev.filter(label => label.id !== idToDelete));
+    setSelectedLabelId(null); // Deselect after deleting
+  }, []);
 
   // --- Page Navigation Handlers ---
   const goToPreviousPage = useCallback(() => {
@@ -505,6 +498,37 @@ function App() {
   // Find the currently selected label object
   const selectedLabel = labels.find(label => label.id === selectedLabelId);
 
+  // --- Effect to calculate menu position ---
+  useEffect(() => {
+    if (selectedLabel && renderedPageInfo && viewerAreaRef.current) {
+      // Calculate pixel position based on relative coords and render info
+      const pixelX = selectedLabel.relativeX * renderedPageInfo.width;
+      const pixelY = selectedLabel.relativeY * renderedPageInfo.height;
+
+      // Get viewer area's scroll position and bounding box
+      const viewerRect = viewerAreaRef.current.getBoundingClientRect();
+      const scrollTop = viewerAreaRef.current.scrollTop;
+      const scrollLeft = viewerAreaRef.current.scrollLeft;
+
+      // Position menu slightly offset from the label
+      // Adjust these offsets as needed
+      const menuTop = pixelY - scrollTop + 20; // Position relative to scrolled viewer
+      const menuLeft = pixelX - scrollLeft + selectedLabel.fontSize * renderedPageInfo.scale + 20; // Position relative to scrolled viewer
+
+      // Basic boundary check (optional, enhance as needed)
+      // This is a simplified check; more robust logic might be needed
+      // to ensure the menu doesn't go off-screen entirely.
+      const finalTop = Math.max(10, menuTop); // Keep some padding from top
+      const finalLeft = Math.max(10, menuLeft); // Keep some padding from left
+
+      setMenuPosition({ top: finalTop, left: finalLeft, visible: true });
+
+    } else {
+      setMenuPosition({ top: 0, left: 0, visible: false }); // Hide if no label selected or no render info
+    }
+  }, [selectedLabel, selectedLabelId, renderedPageInfo]); // Recalculate when these change
+
+
   // --- JSX Rendering ---
   return (
     <div className="w-screen flex h-screen bg-gray-100 dark:bg-gray-900 font-sans overflow-hidden">
@@ -526,15 +550,7 @@ function App() {
         />
 
         {/* Font Settings Menu (shown when a label is selected) */}
-        {selectedLabel && (
-          <FontSettingsMenu
-            key={selectedLabelId}
-            label={selectedLabel}
-            onUpdate={handleLabelUpdate}
-            availableFonts={availableFonts}
-            onDelete={handleDeleteLabel}
-          />
-        )}
+        
          {/* Show Data Table if data is loaded */}
          {data.length > 0 && (
           <div className="mt-4">
@@ -548,7 +564,7 @@ function App() {
       <div
         ref={viewerAreaRef}
         onClick={handleViewerClick}
-        className="w-2/3 bg-gray-300 dark:bg-gray-700 flex justify-center items-center relative overflow-hidden"
+        className="w-2/3 bg-gray-300 dark:bg-gray-700 flex justify-center items-start relative overflow-auto" // Changed items-center to items-start, overflow-hidden to overflow-auto
       >
         <PdfViewer
           pdfFile={pdfFile}
@@ -573,6 +589,28 @@ function App() {
             />
           ))}
         </PdfViewer>
+
+        {/* RENDER FontSettingsMenu HERE as a floating element */}
+        {selectedLabel && menuPosition.visible && (
+          <div
+            className="font-settings-menu" // Added class to prevent propagation from font menu clicks
+            style={{
+              position: 'absolute',
+              top: `${menuPosition.top}px`,
+              left: `${menuPosition.left}px`,
+              zIndex: 50, // Ensure it's above the PDF viewer/labels
+            }}
+          >
+            <FontSettingsMenu
+              key={selectedLabelId} // Use key to force remount if label changes, resetting internal state if any
+              label={selectedLabel}
+              onUpdate={handleLabelUpdate}
+              availableFonts={availableFonts}
+              onDelete={handleDeleteLabel}
+              // Pass style or className if FontSettingsMenu needs further adjustments
+            />
+          </div>
+        )}
       </div>
 
       {/* Add Export Dialog */}

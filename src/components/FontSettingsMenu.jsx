@@ -21,7 +21,7 @@ function FontSettingsMenu({ label, onUpdate, availableFonts, onDelete}) {
   }
 
   return (
-    <div className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-800 space-y-4">
+    <div onMouseDown={(e) => e.stopPropagation()} className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-800 space-y-4">
       <h3 className="text-lg font-semibold border-b border-gray-200 dark:border-gray-700 pb-2 mb-4 text-gray-800 dark:text-gray-100">Edit Label: "{label.text}"</h3>
 
       {/* Font Family Dropdown */}
