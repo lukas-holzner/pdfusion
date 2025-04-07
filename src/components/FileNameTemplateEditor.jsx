@@ -29,9 +29,6 @@ function FileNameTemplateEditor({ template, onChange, availableVariables = [] })
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-        Output File Name Template
-      </label>
       <input
         ref={inputRef}
         type="text"

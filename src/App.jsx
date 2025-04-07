@@ -15,6 +15,7 @@ import ThemeToggle from './components/ThemeToggle';
 import ExportDialog from './components/ExportDialog';
 import { calculateHash } from './utils/pdfHash';
 import FileNameTemplateEditor from './components/FileNameTemplateEditor';
+import EmailTemplateEditors from './components/EmailTemplateEditors'; // Import the new component
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.mjs`;
 
@@ -35,6 +36,12 @@ function App() {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [fileNameTemplate, setFileNameTemplate] = useState('generated_{{index}}_{{filename}}');
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, visible: false }); // State for menu position
+
+  // --- New State for Email Templates ---
+  const [emailToTemplate, setEmailToTemplate] = useState('{{Email}}'); // Default uses 'Email' column if exists
+  const [emailSubjectTemplate, setEmailSubjectTemplate] = useState('Document: {{filename}} for {{First Name}} {{Last Name}}');
+  const [emailBodyTemplate, setEmailBodyTemplate] = useState('Hi {{First Name}},\n\nPlease find the attached document: {{filename}}\n\nBest regards,\n[Your Name]');
+  const [showEmailEditors, setShowEmailEditors] = useState(false); // To toggle visibility of email editors
 
   // Update theme state initialization to check localStorage
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -412,7 +419,13 @@ function App() {
   const { isExporting: isExportingSingleRow, exportSingleRow } = usePdfExport();
 
   // New handler for exporting single row
-  const handleExportRow = useCallback(async (rowIndex) => {
+  const handleExportRow = useCallback(async (rowIndex, exportType = 'download') => {
+    setIsExportDialogOpen(false); // Close dialog after selection
+    if (rowIndex < 0 || rowIndex >= data.length) {
+        console.error("Invalid row index for export:", rowIndex);
+        alert("Invalid row selected for export.");
+        return;
+    }
     try {
       await exportSingleRow({
         pdfFileBuffer,
@@ -420,18 +433,32 @@ function App() {
         row: data[rowIndex],
         rowIndex,
         labels,
-        fileNameTemplate, // Pass the template
-        variables: {
+        fileNameTemplate, // Pass the filename template
+        emailToTemplate, // Pass email templates
+        emailSubjectTemplate,
+        emailBodyTemplate,
+        variables: { // Ensure all needed variables are here
           index: rowIndex + 1,
           filename: pdfFile.name,
           date: new Date().toISOString().split('T')[0],
           ...data[rowIndex] // Spread the row data for column variables
-        }
+        },
+        exportType: exportType // Specify 'download' or 'email'
       });
     } catch (error) {
-      alert(`Failed to export PDF: ${error.message}`);
+      alert(`Failed to export/send PDF: ${error.message}`);
     }
-  }, [pdfFileBuffer, pdfFile, labels, data, exportSingleRow, fileNameTemplate]);
+  }, [
+      pdfFileBuffer,
+      pdfFile,
+      labels,
+      data,
+      exportSingleRow,
+      fileNameTemplate,
+      emailToTemplate, // Add dependencies
+      emailSubjectTemplate,
+      emailBodyTemplate
+  ]);
 
   const handleExportAllClick = useCallback(async () => {
     if (!pdfFileBuffer || !pdfHash || !data.length) {
@@ -528,6 +555,33 @@ function App() {
     }
   }, [selectedLabel, selectedLabelId, renderedPageInfo]); // Recalculate when these change
 
+  // --- Toggle Email Editors ---
+  const toggleEmailEditors = useCallback(() => {
+    setShowEmailEditors(prev => !prev);
+  }, []);
+
+  // --- Load/Save Email Templates ---
+  useEffect(() => {
+    const savedTo = localStorage.getItem('emailToTemplate');
+    const savedSubject = localStorage.getItem('emailSubjectTemplate');
+    const savedBody = localStorage.getItem('emailBodyTemplate');
+    if (savedTo) setEmailToTemplate(savedTo);
+    if (savedSubject) setEmailSubjectTemplate(savedSubject);
+    if (savedBody) setEmailBodyTemplate(savedBody);
+  }, []);
+
+  useEffect(() => {
+    // Persist email templates whenever they change
+    localStorage.setItem('emailToTemplate', emailToTemplate);
+  }, [emailToTemplate]);
+
+  useEffect(() => {
+    localStorage.setItem('emailSubjectTemplate', emailSubjectTemplate);
+  }, [emailSubjectTemplate]);
+
+  useEffect(() => {
+    localStorage.setItem('emailBodyTemplate', emailBodyTemplate);
+  }, [emailBodyTemplate]);
 
   // --- JSX Rendering ---
   return (
@@ -547,6 +601,7 @@ function App() {
           onExportAllClick={handleExportAllClick}
           isAddLabelDisabled={!pdfFile || !renderedPageInfo || isExporting || isLoadingState}
           isExportDisabled={!pdfFileBuffer || !pdfHash || labels.length === 0 || isExporting || isLoadingState}
+          onToggleEmailEditors={toggleEmailEditors} // Add handler to toggle editors
         />
 
         {/* Font Settings Menu (shown when a label is selected) */}
@@ -621,6 +676,20 @@ function App() {
         data={data}
         headers={headers}
       />
+
+      {/* Conditionally render Email Template Editors */}
+      {showEmailEditors && (
+        <EmailTemplateEditors
+          toTemplate={emailToTemplate}
+          onToChange={setEmailToTemplate}
+          subjectTemplate={emailSubjectTemplate}
+          onSubjectChange={setEmailSubjectTemplate}
+          bodyTemplate={emailBodyTemplate}
+          onBodyChange={setEmailBodyTemplate}
+          availableVariables={templateVariables}
+          onClose={toggleEmailEditors} // Allow closing from the editor component
+        />
+      )}
     </div>
   );
 }

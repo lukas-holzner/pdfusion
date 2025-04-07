@@ -12,7 +12,9 @@ function FileNameDialog({ isOpen, onClose, template, onChange, availableVariable
           <DialogTitle className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
             Edit File Name Template
           </DialogTitle>
-          
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Output File Name Template
+          </label>
           <FileNameTemplateEditor
             template={template}
             onChange={onChange}
